@@ -19,9 +19,27 @@ function inferIntentFromQuestion(question: string): Partial<GraphState> {
     return { intent };
   }
 
-  const professional = professionals.find(({ name }) =>
-    normalizedQuestion.includes(name.toLocaleLowerCase()),
-  );
+  const professional = professionals.find(({ name }) => {
+    const professionalName = name.toLocaleLowerCase();
+    if (normalizedQuestion.includes(professionalName)) {
+      return true;
+    }
+
+    const titleAndFirstName = professionalName.match(/^(?:dr\.?|dra\.?)\s+([^\s]+)/);
+    if (!titleAndFirstName) {
+      return false;
+    }
+
+    const firstName = titleAndFirstName[1];
+    const escapedTitle = professionalName.startsWith('dra.')
+      ? 'dra\\.?(?:\\s+|$)'
+      : 'dr\\.?(?:\\s+|$)';
+    const partialNamePattern = new RegExp(
+      `${escapedTitle}${firstName}(?:\\s|$|\\.)`,
+      'i',
+    );
+    return partialNamePattern.test(normalizedQuestion);
+  });
   const patientMatch = question.match(/(?:sou|me chamo)\s+([^,]+?)(?=\s+e\s+|\s+quero\s+|\s+para\s+|\s*$)/i);
   const dateMatch = question.match(/\b(hoje|amanhã|amanha).*?(?:às|as)\s+(\d{1,2})(?::(\d{2}))?\s*h?/i);
   const datetime = dateMatch
@@ -72,11 +90,12 @@ export function createIdentifyIntentNode(llmClient: OpenRouterService) {
       }
 
       const intentData = result.data as GraphState;
-      if (intentData.intent === 'unknown') {
-        const fallback = inferIntentFromQuestion(input);
-        if (fallback.intent !== 'unknown') {
-          return { ...intentData, ...fallback };
-        }
+      const fallback = inferIntentFromQuestion(input);
+      if (fallback.intent !== 'unknown') {
+        return {
+          ...intentData,
+          ...fallback,
+        };
       }
       console.log(`✅ Intent data: ${intentData}`);
 

@@ -47,6 +47,7 @@ describe('Medical Appointment System - E2E Tests', async () => {
         const body = JSON.parse(response.body);
         assert.equal(body.intent, 'cancel');
         assert.equal(body.actionSuccess, true);
+        assert.equal(body.professionalId, 2);
     });
 
     it('Schedule appointment - Missing professional', async () => {
@@ -59,5 +60,18 @@ describe('Medical Appointment System - E2E Tests', async () => {
         assert.equal(body.intent, 'schedule');
         assert.equal(body.actionSuccess, false);
         assert.match(body.actionError, /profissional/i);
+    });
+
+    it('Schedule appointment - Recognizes shortened professional name', async () => {
+        const response = await makeARequest(
+            'Sou Alexandre Soares e quero uma consulta para amanha as 10h com a Dra. Carol'
+        );
+
+        assert.equal(response.statusCode, 200);
+        const body = JSON.parse(response.body);
+        assert.equal(body.intent, 'schedule');
+        assert.equal(body.professionalId, 3);
+        assert.equal(body.patientName, 'Alexandre Soares');
+        assert.equal(body.datetime, '2026-11-21T10:00:00.000Z');
     });
 });
