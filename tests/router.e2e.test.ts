@@ -48,4 +48,16 @@ describe('Medical Appointment System - E2E Tests', async () => {
         assert.equal(body.intent, 'cancel');
         assert.equal(body.actionSuccess, true);
     });
+
+    it('Schedule appointment - Missing professional', async () => {
+        const response = await makeARequest(
+            'Quero agendar uma consulta para amanhã às 16h'
+        );
+
+        assert.equal(response.statusCode, 200);
+        const body = JSON.parse(response.body);
+        assert.equal(body.intent, 'schedule');
+        assert.equal(body.actionSuccess, false);
+        assert.match(body.actionError, /profissional/i);
+    });
 });

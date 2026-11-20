@@ -283,11 +283,11 @@ Se a validação falhar, o nó retorna `actionSuccess: false` e
 `actionError`. Nesse caminho específico, o código atual não define
 explicitamente `success: false`.
 
-### Limitação atual
+### Operação realizada
 
-Embora `AppointmentService` possua `checkAvailability()` e
-`bookAppointment()`, o nó ainda não os chama. Portanto, o fluxo atual não
-persiste a consulta nem bloqueia horários ocupados.
+O nó chama `AppointmentService.checkAvailability()` por meio de
+`bookAppointment()` e cria a consulta em memória. Horários ocupados retornam
+`Horário indisponível para este profissional`.
 
 ## 10. Fluxo de cancelamento
 
@@ -312,10 +312,10 @@ O bloco `catch` define `actionSuccess: false`, `success: false` e
 `actionError`, mas atualmente não há uma chamada de serviço que possa lançar o
 erro de negócio.
 
-### Limitação atual
+### Operação realizada
 
-O nó ainda não chama `AppointmentService.cancelAppointment()`. Portanto, o
-cancelamento é confirmado mesmo sem encontrar uma consulta.
+O nó chama `AppointmentService.cancelAppointment()` e retorna sucesso somente
+quando a combinação de profissional, paciente e data/hora encontra uma consulta.
 
 ## 11. Fluxo `unknown` e falhas
 
@@ -355,10 +355,10 @@ unknown/error ----/
 No comportamento atual:
 
 1. Registra `Generating response message...`.
-2. Copia `state.messages`.
-3. Não chama o modelo.
-4. Não usa `MessageSchema`.
-5. Não adiciona uma resposta normal de `AIMessage`.
+2. Seleciona o cenário conforme intenção e sucesso da operação.
+3. Monta os prompts e chama o modelo com `MessageSchema`.
+4. Preserva o histórico e adiciona uma `AIMessage`.
+5. Usa uma mensagem local de contingência quando o provedor falha.
 
 O arquivo `src/prompts/v1/messageGenerator.ts` já possui prompts para:
 
@@ -368,8 +368,7 @@ O arquivo `src/prompts/v1/messageGenerator.ts` já possui prompts para:
 - falha no cancelamento;
 - intenção desconhecida.
 
-Esse módulo representa a evolução planejada, mas ainda não está conectado ao
-fluxo executado.
+Esse módulo está conectado ao fluxo executado.
 
 ## 13. Resposta HTTP
 
@@ -450,11 +449,11 @@ A configuração em `.vscode/launch.json` usa `--inspect-brk` e
 ```text
 LLM de intenção       implementada
 Roteamento LangGraph  implementado
-Validação de campos   implementada no agendamento
-Persistência           não implementada no nó de agendamento
-Disponibilidade        não consultada pelo grafo
-Cancelamento real      não implementado no nó
-Mensagem final         não gerada normalmente
+Validação de campos   implementada
+Agendamento real       implementado em memória
+Disponibilidade        consultada pelo serviço
+Cancelamento real      implementado em memória
+Mensagem final         gerada pela LLM com fallback
 Banco de dados         não implementado
 ```
 

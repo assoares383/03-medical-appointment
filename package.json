@@ -1,7 +1,7 @@
 {
-  "name": "prompt-chaining-article-generator",
+  "name": "medical-appointment-assistant",
   "version": "1.0.0",
-  "description": "Technical article generator using LangChain prompt chaining with reusable templates",
+  "description": "Assistente de consultas médicas com LangGraph, LangChain e Fastify",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
@@ -23,7 +23,7 @@
   "keywords": [
     "langchain",
     "prompt-chaining",
-    "article-generator",
+    "medical-appointments",
     "openrouter",
     "ollama"
   ],

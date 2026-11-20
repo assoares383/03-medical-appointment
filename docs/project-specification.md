@@ -33,20 +33,12 @@ integração com calendários, notificações ou interface de usuário.
 O projeto contém o esqueleto do workflow e a camada HTTP, mas as operações de
 negócio ainda não estão completamente conectadas:
 
-1. O nó de identificação de intenção lê a mensagem mais recente, mas não
-   chama uma LLM nem preenche os campos extraídos.
-2. O nó de agendamento informa sucesso, mas não chama o
-   `AppointmentService`.
-3. O nó de cancelamento informa sucesso, mas não chama o
-   `AppointmentService`.
-4. O nó de geração de mensagens preserva as mensagens existentes e não gera
-   uma `AIMessage`.
-5. Os módulos de prompts definem schemas e builders de prompts, mas atualmente
-   não são utilizados pelos nós do grafo.
-6. O serviço de consultas está implementado em memória, mas atualmente não é
-   utilizado pelo grafo.
-7. O README anterior descrevia um gerador de artigos técnicos e não este
-   projeto de consultas médicas.
+1. O nó de identificação utiliza uma LLM com fallback local.
+2. O nó de agendamento valida e chama o `AppointmentService`.
+3. O nó de cancelamento valida e chama o `AppointmentService`.
+4. O gerador produz uma resposta da LLM ou uma resposta local de contingência.
+5. Os módulos de prompts definem schemas e builders utilizados pelos nós.
+6. O serviço de consultas continua em memória e não oferece persistência.
 
 Portanto, a estrutura do workflow representa o design pretendido, enquanto o
 comportamento observável da aplicação atual está apenas parcialmente
@@ -309,12 +301,13 @@ A aplicação espera:
 - `OPENROUTER_API_KEY`: credencial do OpenRouter utilizada pela integração
   pretendida com LLM.
 
-A configuração atual também define no código valores de modelo e roteamento,
-incluindo o modelo gratuito `upstage/solar-pro-3:free`, roteamento por
-throughput e temperatura `0.7`.
+A configuração permite `OPENROUTER_MODEL` e uma lista opcional
+`OPENROUTER_MODELS`. Quando nenhuma variável é informada, o projeto usa
+`openai/gpt-4o-mini`. Modelo, throughput e temperatura são definidos em
+`src/config.ts`.
 
-A chave de API é validada na inicialização do módulo. O código atual ainda não
-instancia um cliente OpenRouter.
+A chave de API é validada na inicialização do módulo e o cliente OpenRouter é
+instanciado pelo grafo.
 
 ### 12.2 Comandos
 
@@ -403,7 +396,6 @@ provedores externos sem uma política apropriada de privacidade e retenção.
 
 - O README anterior era copiado de um projeto diferente de geração de artigos
   com prompt chaining.
-- O título configurado ainda diz “Prompt Chaining Article Generator”.
 - Os exemplos de prompts contêm datas fixas que podem ficar desatualizadas.
 - O tratamento de datas mistura operações com data local e construção de
   timestamps UTC.

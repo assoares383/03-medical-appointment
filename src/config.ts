@@ -16,13 +16,20 @@ export type ModelConfig = {
 
 console.assert(process.env.OPENROUTER_API_KEY, 'OPENROUTER_API_KEY is not set in environment variables');
 
+const openRouterModels = process.env.OPENROUTER_MODELS
+  ?.split(',')
+  .map((model) => model.trim())
+  .filter(Boolean);
+
 export const config: ModelConfig = {
   apiKey: process.env.OPENROUTER_API_KEY!,
-  httpReferer: '',
-  xTitle: 'IA Devs - Prompt Chaining Article Generator',
-  models: [
-    'inclusionai/ling-3.2-flash:free'
-  ],
+  httpReferer: process.env.OPENROUTER_HTTP_REFERER ?? '',
+  xTitle: process.env.OPENROUTER_APP_TITLE ?? 'Assistente de Consultas Médicas',
+  models: openRouterModels?.length
+    ? openRouterModels
+    : [
+        process.env.OPENROUTER_MODEL ?? 'openai/gpt-4o-mini',
+      ],
   provider: {
     sort: {
       by: 'throughput', // Route to model with highest throughput (fastest response)

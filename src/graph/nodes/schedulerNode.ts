@@ -3,9 +3,9 @@ import type { GraphState } from '../graph.ts';
 import { z } from 'zod/v3';
 
 const ScheduleRequiredFieldsSchema = z.object({
-  professionalId: z.number({ required_error: 'Professional ID is required' }),
-  datetime: z.string({ required_error: 'Appointment datetime is required' }),
-  patientName: z.string({ required_error: 'Patient name is required' }),
+  professionalId: z.number({ required_error: 'Informe o profissional para a consulta.' }),
+  datetime: z.string({ required_error: 'Informe a data e o horário da consulta.' }),
+  patientName: z.string({ required_error: 'Informe o nome do paciente.' }),
 })
 
 export function createSchedulerNode(appointmentService: AppointmentService) {
@@ -21,7 +21,9 @@ export function createSchedulerNode(appointmentService: AppointmentService) {
         console.log(`Validation failed ${errorMessages}`);
 
         return {
+          ...state,
           actionSuccess: false,
+          success: false,
           actionError: errorMessages,
         }
       }

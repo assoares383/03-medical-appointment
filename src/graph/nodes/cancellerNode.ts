@@ -3,9 +3,9 @@ import type { GraphState } from "../graph.ts";
 import { z } from "zod/v3";
 
 const CancelRequiredFieldsSchema = z.object({
-  professionalId: z.number({ required_error: "Professional ID is required" }),
-  datetime: z.string({ required_error: "Appointment datetime is required" }),
-  patientName: z.string({ required_error: "Patient name is required" }),
+  professionalId: z.number({ required_error: "Informe o profissional da consulta." }),
+  datetime: z.string({ required_error: "Informe a data e o horário da consulta." }),
+  patientName: z.string({ required_error: "Informe o nome do paciente." }),
 });
 
 export function createCancellerNode(appointmentService: AppointmentService) {
@@ -15,7 +15,7 @@ export function createCancellerNode(appointmentService: AppointmentService) {
     try {
       const validation = CancelRequiredFieldsSchema.safeParse(state);
 
-      if (validation.error) {
+      if (!validation.success) {
         const errorMessages = validation.error.errors
           .map((e) => e.message)
           .join(", ");
@@ -23,19 +23,24 @@ export function createCancellerNode(appointmentService: AppointmentService) {
         console.log(`Validation failed ${errorMessages}`);
 
         return {
+          ...state,
           actionSuccess: false,
+          success: false,
           actionError: errorMessages,
         };
       }
 
-      appointmentService.cancelAppointment(
+      const cancelledAppointment = appointmentService.cancelAppointment(
         validation.data.professionalId,
         validation.data.patientName,
         new Date(validation.data.datetime),
       );
 
       return {
+        ...state,
         actionSuccess: true,
+        success: true,
+        appointmentData: cancelledAppointment,
       };
     } catch (error) {
       console.log(
@@ -43,7 +48,9 @@ export function createCancellerNode(appointmentService: AppointmentService) {
       );
 
       return {
+        ...state,
         actionSuccess: false,
+        success: false,
         actionError:
           error instanceof Error ? error.message : "Cancellation failed",
       };

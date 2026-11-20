@@ -20,6 +20,7 @@ export class OpenRouterService {
       modelName: this.config.models.at(0),
       temperature: this.config.temperature,
       openAIApiKey: this.config.apiKey,
+      maxRetries: 2,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",
         defaultHeaders: {

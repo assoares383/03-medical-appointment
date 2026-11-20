@@ -22,13 +22,11 @@ agendar ou cancelar consultas médicas por meio de um fluxo baseado em grafo.
 ## Status atual
 
 Este é um projeto educacional de workflow. A identificação de intenção já
-invoca uma LLM do OpenRouter e o LangGraph roteia as intenções
-`schedule`, `cancel` e `unknown`.
-
-Os nós de agendamento e cancelamento ainda são parcialmente simulados:
-validam ou retornam o resultado da operação, mas não chamam todos os métodos do
-`AppointmentService`. O gerador de mensagens também preserva o histórico atual
-e ainda não produz uma resposta final com o modelo.
+invoca uma LLM do OpenRouter e o LangGraph roteia as intenções `schedule`,
+`cancel` e `unknown`. Agendamento e cancelamento chamam o
+`AppointmentService`. Há uma mensagem local de contingência para manter a
+experiência funcional quando o provedor de IA estiver indisponível ou sem
+crédito.
 
 Consulte a análise completa da implementação e o comportamento planejado do
 MVP em [`docs/project-specification.md`](./docs/project-specification.md).
@@ -92,6 +90,7 @@ Crie um arquivo `.env` na raiz do projeto:
 
 ```env
 OPENROUTER_API_KEY=sua-chave-do-openrouter
+OPENROUTER_MODEL=openai/gpt-4o-mini
 ```
 
 As configurações atuais de modelo e roteamento estão definidas em
@@ -247,8 +246,30 @@ ser consultado em <http://localhost:9000>.
 
 Os testes atuais verificam respostas HTTP e o resultado do fluxo de
 agendamento. O teste de cancelamento prepara uma requisição anterior e valida
-o status HTTP; algumas asserções específicas ainda estão comentadas enquanto o
-fluxo de negócio não usa completamente o `AppointmentService`.
+o status HTTP e o estado da operação.
+
+## Próximas funcionalidades sugeridas
+
+- Persistência das consultas em PostgreSQL ou MongoDB.
+- Autenticação de pacientes e profissionais.
+- Horários disponíveis por duração, período de atendimento e profissional.
+- Notificação por e-mail no agendamento e no cancelamento.
+- Link seguro de reagendamento no e-mail de cancelamento.
+- Lembrete automático antes da consulta e confirmação de presença.
+- Histórico de consultas e cancelamentos.
+- Integração com Google Calendar ou Microsoft Outlook.
+- Painel administrativo para profissionais gerenciarem a agenda.
+- Busca de consultas por paciente, profissional e período.
+
+Para o fluxo de e-mail sugerido:
+
+1. Ao concluir um agendamento, enviar confirmação com data, horário,
+   profissional e opção de cancelar.
+2. Ao cancelar, enviar confirmação e um link temporário para reagendar.
+3. Ao abrir o link, apresentar horários disponíveis e criar o novo
+   agendamento após validação.
+4. Registrar o status do envio e permitir nova tentativa em caso de falha,
+   sem reverter uma consulta que já tenha sido confirmada.
 
 ## Servidor de desenvolvimento LangGraph
 
